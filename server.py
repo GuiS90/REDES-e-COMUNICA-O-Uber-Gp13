@@ -4,19 +4,20 @@ import time
 import random
 from datetime import datetime
 
-# config do server
+#config do server
 SERVER = 'localhost'
 PORT = 5000
 ADDR = (SERVER, PORT)
 
-# variavel global pro estado do motorista
+#variavel global pro estado do motorista
 estado_motorista = {
     "status": "livre",
     "posicao_fila": 1
 }
+total_motoristas = 0 # NOVO: contador para atualizar a posição
 lock = threading.Lock()
 
-def thread_recebe_comandos(conn, addr):
+def thread_recebe_comandos(conn, addr, posicao_privada):
     #thread 1: recebe comandos
     while True:
         try:
@@ -31,7 +32,8 @@ def thread_recebe_comandos(conn, addr):
                 #usamos o 'lock' sempre que formos ler ou escrever na variável global
                 with lock:
                     status_atual = estado_motorista["status"]
-                    posicao = estado_motorista["posicao_fila"]
+                    #agora usamos a posicao_privada recebida na conexão
+                    posicao = posicao_privada
                 resposta_comando = f"Seu status atual é: {status_atual.upper()}. Sua posição na fila é: {posicao}."
 
             elif comando == ":accept":
@@ -61,6 +63,7 @@ def thread_recebe_comandos(conn, addr):
             #eco de confirmação 
             resposta = f"Voce executou: [{comando}]\n"
             conn.sendall(resposta.encode('utf-8'))
+            conn.sendall(resposta_comando.encode('utf-8'))
             
         except ConnectionResetError:
             break
@@ -89,6 +92,7 @@ def thread_gera_corridas(conn):
                     break #se der erro, o cliente desconectou
 
 def main():
+    global total_motoristas #referenciando o contador global
     #bind e o listen
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind(ADDR)
@@ -98,14 +102,21 @@ def main():
     while True:
         #fica esperando o motorista conectar
         conn, addr = server.accept()
-        print(f"[NOVA CONEXÃO] Motorista {addr} conectado.")
+        
+        #incrementa a posição a cada nova conexão
+        with lock:
+            total_motoristas += 1
+            posicao_atual = total_motoristas
+            
+        print(f"[NOVA CONEXÃO] Motorista {addr} conectado. Posição na fila: {posicao_atual}")
         
         #envia a mensagem inicial obrigatória 
         horario_atual = datetime.now().strftime("%H:%M")
         conn.sendall(f"<{horario_atual}>: CONECTADO!!\n".encode('utf-8'))
 
         #inicia as Threads para lidar com esse motorista
-        t1 = threading.Thread(target=thread_recebe_comandos, args=(conn, addr))
+        #passamos a posicao_atual como argumento para a thread
+        t1 = threading.Thread(target=thread_recebe_comandos, args=(conn, addr, posicao_atual))
         t2 = threading.Thread(target=thread_gera_corridas, args=(conn,))
         
         t1.start()
