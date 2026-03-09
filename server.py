@@ -1,5 +1,3 @@
-#primeiro vamos fazer o nosso server.py
-#vamos importar o que precisamos
 import socket
 import threading
 import time
@@ -51,12 +49,13 @@ def thread_recebe_comandos(conn, addr):
                         resposta_comando = "Corrida cancelada com sucesso!"
                     else:
                         resposta_comando = "Você não esta em uma corrida para cancelar"
-                pass 
 
             elif comando == ":quit":
-                #como encerrar a conexão?
-                pass
-                
+                #encerrando a conexão
+                resposta_comando = "Deslogando do sistema... Tchau!!!"
+                resposta_final = f"Voce executou: [{comando}]\n{resposta_comando}\n"
+                conn.sendall(resposta_final.encode('utf-8'))
+                break
             else:
                 resposta_comando = "Comando não reconhecido."
             #eco de confirmação 
