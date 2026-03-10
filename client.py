@@ -1,3 +1,4 @@
+#VERSÃO FINAL ENTREGA 1
 #importando o que precisamos
 import socket
 import threading
@@ -64,3 +65,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
