@@ -1,3 +1,4 @@
+#VERSÃO FINAL ENTREGA 1
 import socket
 import threading
 import time
@@ -124,3 +125,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
