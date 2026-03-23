@@ -49,7 +49,7 @@ def thread_recebe_comandos(conn, addr, nome_motorista, posicao_privada):
             if comando == ":status":
                 with lock:
                     saldo = banco_motoristas[nome_motorista]["saldo"]
-                resposta_comando = f"Status: {sessao['status'].upper()} | Faturamento Total: R${saldo:.2f} | Posição: {posicao_privada}" [cite: 106, 272]
+                resposta_comando = f"Status: {sessao['status'].upper()} | Faturamento Total: R${saldo:.2f} | Posição: {posicao_privada}"
 
             elif comando == ":accept":
                 with lock:
@@ -60,7 +60,7 @@ def thread_recebe_comandos(conn, addr, nome_motorista, posicao_privada):
                         sessao["ultima_corrida_valor"] = valor
                         banco_motoristas[nome_motorista]["saldo"] += valor
                         salvar_dados()
-                        resposta_comando = f"Corrida aceita! Valor de R${valor:.2f} será creditado ao finalizar." [cite: 111]
+                        resposta_comando = f"Corrida aceita! Valor de R${valor:.2f} será creditado ao finalizar."
                     else:
                         resposta_comando = "Você já está em uma corrida."
 
@@ -83,7 +83,7 @@ def thread_recebe_comandos(conn, addr, nome_motorista, posicao_privada):
             else:
                 resposta_comando = "Comando não reconhecido."
 
-            #eco de confirmação [cite: 111, 222]
+            #eco de confirmação
             conn.sendall(f"Voce executou: [{comando}]\n{resposta_comando}\n> ".encode('utf-8'))
             
         except:
@@ -114,7 +114,7 @@ def main():
     while True:
         conn, addr = server.accept()
         
-        #3 - validação de Limite [cite: 233]
+        #3 - validação de Limite
         if total_motoristas_online >= LIMITE:
             conn.sendall("ERRO: Servidor lotado. Tente mais tarde.\n".encode('utf-8'))
             conn.close()
@@ -130,15 +130,15 @@ def main():
                 banco_motoristas[nome] = {"saldo": 0.0} #novos motoristas começam com zero
                 print(f"[NOVO MOTORISTA] {nome} cadastrado.")
             else:
-                print(f"[RETORNO] {nome} conectou. Saldo recuperado: R${banco_motoristas[nome]['saldo']:.2f}") [cite: 272]
+                print(f"[RETORNO] {nome} conectou. Saldo recuperado: R${banco_motoristas[nome]['saldo']:.2f}")
             
             posicao = total_motoristas_online
 
         salvar_dados()
         horario = datetime.now().strftime("%H:%M")
-        conn.sendall(f"<{horario}>: CONECTADO!! Ola {nome}.\n> ".encode('utf-8')) [cite: 91, 202]
+        conn.sendall(f"<{horario}>: CONECTADO!! Ola {nome}.\n> ".encode('utf-8'))
 
-        #5 - threads dedicadas (cada cliente com 2 threads) [cite: 232]
+        #5 - threads dedicadas (cada cliente com 2 threads)
         threading.Thread(target=thread_recebe_comandos, args=(conn, addr, nome, posicao)).start()
         #thread de geração de corridas (exemplo simplificado)
         #threading.Thread(target=thread_gera_corridas, args=(conn,)).start()
