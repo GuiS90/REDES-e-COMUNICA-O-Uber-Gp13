@@ -1,4 +1,3 @@
-#VERSÃO FINAL ENTREGA 1
 #importando o que precisamos
 import socket
 import threading
@@ -17,8 +16,9 @@ def thread_envia_comandos(client):
             client.sendall(msg.encode('utf-8'))
             
             if msg.lower() == ':quit':
+                #encerra o socket e o programa
                 client.close()
-                sys.exit() #encerra o programa
+                sys.exit() 
         except:
             break
 
@@ -29,7 +29,7 @@ def thread_recebe_mensagens(client):
             msg = client.recv(1024).decode('utf-8')
             if not msg:
                 break
-            #imprime a mensagem recebida e recoloca o prompt "> " na tela
+            #imprime a mensagem recebida (pode ser alerta de corrida ou resposta de comando)
             print(f"\n{msg}", end="") 
         except:
             print("\n[ERRO] Conexão com o servidor foi perdida.")
@@ -42,27 +42,44 @@ def main():
         #conecta ao Servidor
         client.connect(ADDR)
         
-        #recebe e imprime o horario e avisa que foi conectado 
+        #recebe o pedido de identificação ou erro de lotação
+        boas_vindas = client.recv(1024).decode('utf-8')
+        
+        #verifica se o servidor recusou por estar cheio
+        if "ERRO" in boas_vindas:
+            print(boas_vindas)
+            client.close()
+            return
+
+        #lê o nome do motorista e envia para o servidor para persistência
+        print(boas_vindas, end="")
+        nome = input()
+        client.sendall(nome.encode('utf-8'))
+
+        #recebe e imprime a mensagem de confirmação final com horário
         msg_inicial = client.recv(1024).decode('utf-8')
         print(msg_inicial)
         
-        #inicia as threads do cliente
+        #inicia as threads do cliente (cada cliente com 2 threads dedicadas)
         t1 = threading.Thread(target=thread_envia_comandos, args=(client,))
         t2 = threading.Thread(target=thread_recebe_mensagens, args=(client,))
         
-        #define como daemon (assim mesmo com loops ativos ele finaliza no quit) para que fechem se o programa principal fechar
+        #define como daemon para que fechem se o programa principal fechar
         t1.daemon = True 
         t2.daemon = True
         
         t1.start()
         t2.start()
         
-        #mantém a thread principal viva
+        #mantém a thread principal viva enquanto t1 rodar
         t1.join() 
         
     except ConnectionRefusedError:
         print("[ERRO] Não foi possível conectar. O servidor está rodando?")
+    except KeyboardInterrupt:
+        print("\n[SAINDO] Aplicação encerrada pelo usuário.")
+        client.close()
+        sys.exit()
 
 if __name__ == "__main__":
     main()
-
