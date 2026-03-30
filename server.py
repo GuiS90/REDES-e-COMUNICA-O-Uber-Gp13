@@ -141,7 +141,7 @@ def main():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind(ADDR)
     server.listen()
-    print(f"\n[INICIANDO] Servidor Uber Fase 2")
+    print(f"\n[INICIANDO] Servidor Uber Fase 3")
     print(f"[AGUARDANDO] Limite: {LIMITE} motoristas | Endereco: {SERVER}:{PORT}\n")
 
     while True:
